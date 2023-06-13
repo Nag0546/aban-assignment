@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<title>Assignment ABN Amro</title>
+<head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+    <style>
+        .heading {
+            text-align: center;
+            color: #ffffff;
+            background-color: #009286;
+        }
+
+        .summary {
+            text-align: left;
+            background-color: #F3C000;
+            color: #009286;
+            padding: 10px;
+        }
+
+        img {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            margin: 1% auto;
+            max-width: 95%;
+        }
+
+        p {
+            margin-left: 3%;
+            font-weight: bold;
+        }
+
+        .divtext {
+            border: ridge 2px;
+            padding: 5px;
+            min-height: 5em;
+            overflow: auto;
+        }
+
+        body {
+            margin: 0 auto;
+            max-width: 900px;
+        }
+        pre {
+            font-family: Consolas,"courier new";
+            color: crimson;
+            background-color: #f1f1f1;
+            padding: 2px;
+            font-size: 80%;
+        }
+    </style>
+</head>
+
+<body>
+    <h2 class="heading">Assignment: ABN Amro</h2>
+
+    <h3>Exercise: Fix the pipeline</h3>
+
+    <div>Use the problems and images noted below to fix the Azure DevOps pipeline.</b></div>
+    <p></br>Issues:</p>
+
+    <ul>
+        <li>
+            People have pushed code to the repo but the pipeline does not run automatically.
+        </li>
+        <li>
+            The person that wrote the resources is not sure of the details they wrote down.
+        </li>
+        <li>
+            The name of the application being used - <b>awesome-app</b> - needs to be turned into a variable
+        </li>
+        <li> Versioning
+            <ul>
+                <li>
+                    The version of the application needs to be saved into a variable to be able use it in another stage.
+                </li>
+                <li>
+                    The <b>versioning</b> stage needs to happen only for the development environment parameter.
+                </li>
+            </ul>
+        </li>
+        <li>
+            Deployment
+            <ul>
+                <li>
+                    A manual run of the pipeline will not show the production environment.
+                </li>
+                <li>
+                    The pipeline does not deploy to all environments.
+                </li>
+                <li>
+                    The pipeline does not specify that only the main branch can deploy to production and that the other branches cannot.
+                </li>
+                <li>
+                    We do not expect you to deploy an application. Echoing the environment along with the application name is enough for this assignment.
+                </li>
+            </ul>
+        </li>
+    </ul>
+
+    <section>
+        <article>
+            <details>
+                <summary class="summary">
+                    Images
+                </summary>
+                <a target="_blank" href="files/service_connections.png">
+                    <img src="files/service_connections.png" alt="service connections" height="20%">
+                </a>
+                <a target="_blank" href="files/nexus3.png">
+                    <img src="files/nexus3.png" alt="nexus 3" height="20%">
+                </a>
+            </details>
+            <details>
+                <summary class="summary">
+                    Current pipeline
+                </summary>
+                    <pre>
+    parameters:
+    - name: deployment_environment
+        displayName: Deployment Environment
+        type: string
+        default: development
+        values:
+        - development
+        - acceptance
+
+    resources:
+    containers:
+        - container: python
+        image: pyspark3:0.8.0
+        endpoint: nexus-docker
+
+    stages:
+    - stage: Versioning
+        jobs:
+        - job: GetLatestVersion
+        steps:
+            - task: Bash@3
+            displayName: Determine Package Version
+            name: version
+            inputs:
+                targetType: 'inline'
+                script: |
+                pip download awesome-app --no-deps -d ./package_download
+                CURRENT_VERSION=`ls nexus | grep awesome-app | cut -d "-" -f2`
+                echo "Current Nexus Version is $CURRENT_VERSION"
+                    </pre>
+            </details>
+        </article>
+    </section>
+</body>
+</html>
