@@ -1,0 +1,51 @@
+parameters:
+    - name: deployment_environment
+        displayName: Deployment Environment
+        type: string
+        default: development
+        values:
+        - development
+        - acceptance
+        - main
+        
+    trigger:
+     - main
+     
+    resources:
+    containers:
+        - container: python
+        image: pyspark3:0.8.0
+        endpoint: nexus-docker
+
+    stages:
+    - stage: Versioning
+        jobs:
+        - job: GetLatestVersion
+        steps:
+            - task: Bash@3
+            displayName: Determine Package Version
+            name: version
+            inputs:
+                targetType: 'inline'
+                script: |
+                pip download awesome-app --no-deps -d ./package_download
+                CURRENT_VERSION=`ls nexus | grep awesome-app | cut -d "-" -f2`
+                echo "Current Nexus Version is $CURRENT_VERSION"
+                
+    
+    - stage: deploy
+       jobs:
+       - deployment: Deploy 
+         condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+         displayName: deploy Web App
+         pool:
+         vmImage: 'Ubuntu-latest'
+   
+       environment: 'prod'
+        resourceName: myVM
+        resourceType: virtualMachine
+      strategy:
+       runOnce:
+         deploy:
+          steps:
+          - script: echo Hello world
