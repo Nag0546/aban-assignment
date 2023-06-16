@@ -8,8 +8,11 @@ parameters:
         - acceptance
         - main
         
-    trigger:
+   trigger:
      - main
+   
+   variables:
+     app-name:awesome-app 
      
     resources:
     containers:
@@ -29,7 +32,7 @@ parameters:
                 targetType: 'inline'
                 script: |
                 pip download awesome-app --no-deps -d ./package_download
-                CURRENT_VERSION=`ls nexus | grep awesome-app | cut -d "-" -f2`
+                CURRENT_VERSION=`ls nexus | grep $(awesome-app) | cut -d "-" -f2`
                 echo "Current Nexus Version is $CURRENT_VERSION"
                 
     
@@ -37,7 +40,7 @@ parameters:
        jobs:
        - deployment: Deploy 
          condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
-         displayName: deploy Web App
+         displayName: deploy $(awesome-app)
          pool:
          vmImage: 'Ubuntu-latest'
    
