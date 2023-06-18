@@ -1,5 +1,5 @@
 parameters:
-    - name: c
+    - name: deployment_environment 
         displayName: Deployment Environment
         type: string
         default: development
