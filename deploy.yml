@@ -1,5 +1,5 @@
 parameters:
-    - name: deployment_environment
+    - name: c
         displayName: Deployment Environment
         type: string
         default: development
@@ -27,6 +27,7 @@ parameters:
         steps:
             - task: Bash@3
             displayName: Determine Package Version
+            condition: and(succeeded(), eq('${{ parameters.deployment_environment }}', development))
             name: version
             inputs:
                 targetType: 'inline'
@@ -51,4 +52,6 @@ parameters:
        runOnce:
          deploy:
           steps:
-          - script: echo Hello world
+          - script: |
+                    echo $(Environment.Name)
+                    echo $(app-name)
