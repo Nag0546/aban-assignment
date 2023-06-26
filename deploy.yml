@@ -1,57 +1,52 @@
 parameters:
-    - name: deployment_environment 
-        displayName: Deployment Environment
-        type: string
-        default: development
-        values:
+  - name: deployment_environment
+    displayName: Deploy Environment
+    type: string
+    default: development
+    values:
         - development
         - acceptance
-        - main
         
-   trigger:
+trigger:
      - main
-   
-   variables:
-     app-name:awesome-app 
-     
-    resources:
-    containers:
-        - container: python
-        image: pyspark3:0.8.0
-        endpoint: nexus-docker
 
-    stages:
-    - stage: Versioning
-        jobs:
-        - job: GetLatestVersion
+variables:
+ app-name: awesome-app
+ isMain: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
+
+resources:
+    containers:
+      - container: python
+        image: pyspark3:0.8.0
+        endpoint: nexus-docker 
+
+
+stages:
+  - stage: Versioning
+    jobs:
+      - job: GetLatestVersion
         steps:
-            - task: Bash@3
+          - task: Bash@3
             displayName: Determine Package Version
             condition: and(succeeded(), eq('${{ parameters.deployment_environment }}', development))
             name: version
             inputs:
                 targetType: 'inline'
                 script: |
-                pip download awesome-app --no-deps -d ./package_download
-                CURRENT_VERSION=`ls nexus | grep $(awesome-app) | cut -d "-" -f2`
-                echo "Current Nexus Version is $CURRENT_VERSION"
-                
-    
-    - stage: deploy
-       jobs:
-       - deployment: Deploy 
-         condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
-         displayName: deploy $(awesome-app)
-         pool:
-         vmImage: 'Ubuntu-latest'
-   
-       environment: 'prod'
-        resourceName: myVM
-        resourceType: virtualMachine
-      strategy:
-       runOnce:
-         deploy:
-          steps:
-          - script: |
+                 pip download awesome-app --no-deps -d ./package_download
+                 CURRENT_VERSION=`ls nexus | grep $(awesome-app) | cut -d "-" -f2`
+                 echo "Current Nexus Version is $CURRENT_VERSION"
+
+  - stage: deploy_prod
+    displayName: deploy to production
+    jobs:
+      - deployment: Deploy 
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))  
+        environment: 'prod'  
+        strategy:
+         runOnce:
+          deploy:
+           steps:
+           - script: |
                     echo $(Environment.Name)
-                    echo $(app-name)
+                    echo $(app-name)             
